@@ -1,0 +1,30 @@
+#---------------------------------------------------------------
+#                         VOLUME CLAIMS
+#---------------------------------------------------------------
+#DATA
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: sentry
+  name: cp-zookeeper-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 512Mi
+---
+
+#LOGS
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: sentry
+  name: cp-zookeeper-log
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 128Mi
+---

@@ -1,0 +1,83 @@
+#---------------------------------------------------------------
+#                             SERVICES
+#---------------------------------------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: sentry
+  name: cp-zookeeper
+spec:
+  type: NodePort
+  ports:
+    - port: 2181
+  selector:
+    instance: cp-zookeeper
+---
+
+#---------------------------------------------------------------
+#                           WORKLOADS
+#---------------------------------------------------------------
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  namespace: sentry
+  name: cp-zookeeper
+  labels:
+    instance: cp-zookeeper
+spec:
+  serviceName: cp-zookeeper
+  selector:
+    matchLabels:
+      instance: cp-zookeeper
+
+  #Initial replicas
+  replicas: 1
+
+  #Template
+  template:
+    metadata:
+      labels:
+        instance: cp-zookeeper
+
+    spec:
+      containers:
+        - name: cp-zookeeper
+          image: confluentinc/cp-zookeeper:6.0.0
+          imagePullPolicy: IfNotPresent
+
+#          resources:
+#            requests:
+#              memory: "120Mi"
+
+          envFrom:
+            - configMapRef:
+                name: cp-zookeeper
+
+          ports:
+            - containerPort: 2181
+
+          command:
+            - sh
+            - -exc
+            - |
+              export ZOOKEEPER_SERVER_ID=${HOSTNAME##*-}
+              exec /etc/confluent/docker/run
+
+          volumeMounts:
+            - mountPath: /var/lib/zookeeper/data
+              name: cp-zookeeper-data
+            - mountPath: /var/lib/zookeeper/log
+              name: cp-zookeeper-log
+            - mountPath: /etc/zookeeper/secrets
+              name: cp-zookeeper-secrets
+
+      volumes:
+        - name: cp-zookeeper-data
+          persistentVolumeClaim:
+            claimName: cp-zookeeper-data
+        - name: cp-zookeeper-log
+          persistentVolumeClaim:
+            claimName: cp-zookeeper-log
+        - name: cp-zookeeper-secrets
+          persistentVolumeClaim:
+            claimName: sentry-secrets

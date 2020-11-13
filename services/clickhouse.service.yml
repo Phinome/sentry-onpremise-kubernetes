@@ -1,0 +1,68 @@
+#---------------------------------------------------------------
+#                             SERVICES
+#---------------------------------------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: sentry
+  name: clickhouse
+spec:
+  type: NodePort
+  ports:
+    - port: 8123
+  selector:
+    instance: clickhouse
+---
+
+#---------------------------------------------------------------
+#                           WORKLOADS
+#---------------------------------------------------------------
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  namespace: sentry
+  name: clickhouse
+  labels:
+    instance: clickhouse
+spec:
+  serviceName: clickhouse
+  selector:
+    matchLabels:
+      instance: clickhouse
+
+  #Initial replicas
+  replicas: 1
+
+  #Template
+  template:
+    metadata:
+      labels:
+        instance: clickhouse
+
+    spec:
+      containers:
+        - name: clickhouse
+          image: yandex/clickhouse-server:20.3.9.70
+          imagePullPolicy: IfNotPresent
+
+#          resources:
+#            requests:
+#              memory: "120Mi"
+
+          ports:
+            - containerPort: 8123
+
+          volumeMounts:
+            - mountPath: /var/lib/clickhouse
+              name: clickhouse-data
+            - mountPath: /var/log/clickhouse-server
+              name: clickhouse-log
+
+      volumes:
+        - name: clickhouse-data
+          persistentVolumeClaim:
+            claimName: clickhouse-data
+        - name: clickhouse-log
+          persistentVolumeClaim:
+            claimName: clickhouse-log
+

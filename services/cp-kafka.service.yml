@@ -1,0 +1,84 @@
+#---------------------------------------------------------------
+#                             SERVICES
+#---------------------------------------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: sentry
+  name: cp-kafka
+spec:
+  type: NodePort
+  ports:
+    - port: 9094
+  selector:
+    instance: cp-kafka
+---
+
+#---------------------------------------------------------------
+#                           WORKLOADS
+#---------------------------------------------------------------
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  namespace: sentry
+  name: cp-kafka
+  labels:
+    instance: cp-kafka
+
+spec:
+  serviceName: cp-kafka
+  selector:
+    matchLabels:
+      instance: cp-kafka
+
+  #Initial replicas
+  replicas: 1
+
+  #Template
+  template:
+    metadata:
+      labels:
+        instance: cp-kafka
+
+    spec:
+      containers:
+        - name: cp-kafka
+          image: confluentinc/cp-kafka:6.0.0
+          imagePullPolicy: IfNotPresent
+
+#          resources:
+#            requests:
+#              memory: "400Mi"
+
+          envFrom:
+            - configMapRef:
+                name: cp-kafka
+
+          ports:
+            - containerPort: 9094
+
+          command:
+            - sh
+            - -exc
+            - |
+              export KAFKA_BROKER_ID=${HOSTNAME##*-}
+              exec /etc/confluent/docker/run
+
+          volumeMounts:
+            - mountPath: /var/lib/kafka/data
+              name: cp-kafka-data
+            - mountPath: /var/lib/kafka/log
+              name: cp-kafka-log
+            - mountPath: /etc/kafka/secrets
+              name: cp-kafka-secrets
+
+      volumes:
+        - name: cp-kafka-data
+          persistentVolumeClaim:
+            claimName: cp-kafka-data
+        - name: cp-kafka-log
+          persistentVolumeClaim:
+            claimName: cp-kafka-log
+        - name: cp-kafka-secrets
+          persistentVolumeClaim:
+            claimName: sentry-secrets

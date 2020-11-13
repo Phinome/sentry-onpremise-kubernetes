@@ -1,0 +1,28 @@
+#---------------------------------------------------------------
+#                         CONFIGURATION
+#---------------------------------------------------------------
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  namespace: sentry
+  name: cp-kafka
+data:
+  KAFKA_ZOOKEEPER_CONNECT: "cp-zookeeper:2181"
+
+  KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+  KAFKA_OFFSETS_TOPIC_NUM_PARTITIONS: "1"
+
+  KAFKA_MAX_REQUEST_SIZE: "50000000"
+  KAFKA_MESSAGE_MAX_BYTES: "50000000"
+
+  KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CLUSTER:PLAINTEXT"
+  KAFKA_INTER_BROKER_LISTENER_NAME: "CLUSTER"
+  KAFKA_LISTENERS: "CLUSTER://0.0.0.0:9094"
+  KAFKA_ADVERTISED_LISTENERS: "CLUSTER://cp-kafka:9094"
+
+  KAFKA_LOG4J_LOGGERS: "kafka.cluster=WARN,kafka.controller=WARN,kafka.coordinator=WARN,kafka.log=WARN,kafka.server=WARN,kafka.zookeeper=WARN,state.change.logger=WARN"
+  KAFKA_LOG4J_ROOT_LOGLEVEL: "WARN"
+  KAFKA_TOOLS_LOG4J_LOGLEVEL: "WARN"
+  KAFKA_LOG_RETENTION_HOURS: "24"
+
+  CONFLUENT_SUPPORT_METRICS_ENABLE: "false"

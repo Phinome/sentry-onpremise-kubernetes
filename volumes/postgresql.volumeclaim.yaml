@@ -1,0 +1,16 @@
+#---------------------------------------------------------------
+#                         VOLUME CLAIMS
+#---------------------------------------------------------------
+#DATA
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: sentry
+  name: postgresql-data
+
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi

@@ -1,0 +1,235 @@
+#---------------------------------------------------------------
+#                             SERVICES
+#---------------------------------------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: sentry
+  name: tool-sentry-web
+spec:
+  type: NodePort
+  ports:
+    - name: "http"
+      port: 80
+      targetPort: 9000
+  selector:
+    instance: tool-sentry-web
+---
+
+#---------------------------------------------------------------
+#                             VOLUMES
+#---------------------------------------------------------------
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  namespace: sentry
+  name: tool-sentry-web
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /data/sentry
+    type: DirectoryOrCreate
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: sentry
+  name: tool-sentry-web
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+
+#---------------------------------------------------------------
+#                           WORKLOADS
+#---------------------------------------------------------------
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  namespace: sentry
+  name: tool-sentry-web
+  labels:
+    instance: tool-sentry-web
+spec:
+  serviceName: tool-sentry-web
+  selector:
+    matchLabels:
+      instance: tool-sentry-web
+
+  #Initial replicas
+  replicas: 1
+
+  #Template
+  template:
+    metadata:
+      labels:
+        instance: tool-sentry-web
+    spec:
+      initContainers:
+        #1) SENTRY POSTGRESQL DATABASE CREATION
+        - name: tool-sentry-db-creation
+          image: postgres:11
+          imagePullPolicy: IfNotPresent
+
+          resources:
+            requests:
+              memory: "512Mi"
+
+          envFrom:
+            - configMapRef:
+                name: tool-sentry
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                configMapKeyRef:
+                    name: tool-sentry
+                    key: SENTRY_DB_PASSWORD
+
+          command: ["/bin/sh"]
+          args: ["-c", "createdb -h tool-external-postgresql -U $(SENTRY_DB_USER) $(SENTRY_DB_NAME) || true"]
+
+        #2) SENTRY DATABASE UPDATE
+        - name: tool-sentry-db-update
+          image: sentry:9
+          imagePullPolicy: IfNotPresent
+
+          envFrom:
+            - configMapRef:
+                name: tool-sentry
+
+          command: ["sentry", "upgrade"]
+          args: ["--noinput"]
+
+        #3) ENTRY USER ADMIN CREATION
+        - name: tool-sentry-user-creation
+          image: sentry:9
+          imagePullPolicy: IfNotPresent
+
+          envFrom:
+            - configMapRef:
+                name: tool-sentry
+
+          command: ["/bin/sh"]
+          args: ["-c", "sentry createuser --no-input --email $(SENTRY_ADMIN_USER_EMAIL) --superuser --password $(SENTRY_ADMIN_USER_PASSWORD) || true"]
+
+      containers:
+        #4) SENTRY WEB
+        - name: tool-sentry-web
+          image: sentry:9
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - name: "http"
+              containerPort: 9000
+
+          readinessProbe:
+            successThreshold: 1
+            failureThreshold: 2
+            periodSeconds: 30
+            timeoutSeconds: 1
+            httpGet:
+              port: 9000
+              path: /_health/
+
+          volumeMounts:
+            - name: tool-sentry-web
+              subPath: "files" #relative to volume
+              mountPath: /data/sentry
+
+          envFrom:
+            - configMapRef:
+                name: tool-sentry
+
+      volumes:
+        - name: tool-sentry-web
+          persistentVolumeClaim:
+            claimName: tool-sentry-web
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: sentry
+  name: tool-sentry-worker
+  labels:
+    instance: tool-sentry-worker
+spec:
+  selector:
+    matchLabels:
+      instance: tool-sentry-worker
+
+  #Initial replicas
+  replicas: 1
+
+  #Replacement strategy
+  strategy:
+    type: Recreate
+
+  #Template
+  template:
+    metadata:
+      labels:
+        instance: tool-sentry-worker
+    spec:
+      containers:
+        - name: tool-sentry-worker
+          image: sentry:9
+          imagePullPolicy: IfNotPresent
+
+          resources:
+            requests:
+              memory: "350Mi"
+
+          envFrom:
+            - configMapRef:
+                name: tool-sentry
+
+          args: ["run", "worker"]
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: sentry
+  name: tool-sentry-cron
+  labels:
+    instance: tool-sentry-cron
+spec:
+  selector:
+    matchLabels:
+      instance: tool-sentry-cron
+
+  #Initial replicas
+  replicas: 1
+
+  #Replacement strategy
+  strategy:
+    type: Recreate
+
+  #Template
+  template:
+    metadata:
+      labels:
+        instance: tool-sentry-cron
+    spec:
+      containers:
+        - name: tool-sentry-cron
+          image: sentry:9
+          imagePullPolicy: IfNotPresent
+
+          resources:
+            requests:
+              memory: "150Mi"
+
+          envFrom:
+            - configMapRef:
+                name: tool-sentry
+
+          args: ["run", "cron"]

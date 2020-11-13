@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: snuba-transactions-consumer
+  name: snuba-transactions-consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: snuba-transactions-consumer
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: snuba-transactions-consumer
+    spec:
+      containers:
+        - args:
+            - consumer
+            - --storage
+            - transactions
+            - --consumer-group
+            - transactions_group
+            - --auto-offset-reset=latest
+            - --max-batch-time-ms
+            - "750"
+          env:
+            - name: CLICKHOUSE_HOST
+              value: clickhouse
+            - name: DEFAULT_BROKERS
+              value: kafka:9092
+            - name: REDIS_HOST
+              value: redis
+            - name: SNUBA_SETTINGS
+              value: docker
+            - name: UWSGI_DISABLE_LOGGING
+              value: "true"
+            - name: UWSGI_MAX_REQUESTS
+              value: "10000"
+          image: snuba-transactions-consumer
+          name: snuba-transactions-consumer
+          resources: {}
+      restartPolicy: Always
+status: {}

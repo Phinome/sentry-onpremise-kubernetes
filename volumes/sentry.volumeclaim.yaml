@@ -1,0 +1,15 @@
+#---------------------------------------------------------------
+#                         VOLUME CLAIMS
+#---------------------------------------------------------------
+#SECRETS
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: sentry
+  name: sentry-secrets
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 64Mi
