@@ -5,18 +5,17 @@ kind: ConfigMap
 apiVersion: v1
 metadata:
   namespace: sentry
-  name: tool-sentry
+  name: sentry
 data:
   SENTRY_SINGLE_ORGANIZATION: "true"
   SENTRY_SECRET_KEY: "?"
+  SENTRY_EVENT_RETENTION_DAYS: "90"
 
   SENTRY_POSTGRES_HOST: postgresql
   SENTRY_POSTGRES_PORT: "5432"
   SENTRY_DB_USER: sentry
   SENTRY_DB_PASSWORD: sentry
   SENTRY_DB_NAME: sentry
-
-  SENTRY_FILESTORE_DIR: /data/sentry/files
 
   SENTRY_REDIS_HOST: redis
   SENTRY_REDIS_PORT: "6379"
@@ -28,9 +27,11 @@ data:
   SENTRY_EMAIL_USE_TLS: "?"
   SENTRY_SERVER_EMAIL: no-reply@notifications.sentry.co
 
-  SENTRY_ADMIN_USER_EMAIL: sentry@sentry.co
+  SENTRY_ADMIN_USER_EMAIL: admin@sentry.com
   SENTRY_ADMIN_USER_PASSWORD: sentry
 
   SLACK_CLIENT_ID: "377781004048.?"
   SLACK_CLIENT_SECRET: "?"
   SLACK_VERIFICATION_TOKEN: "?"
+
+  SNUBA: 'http://snuba-api:1218'
