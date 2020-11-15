@@ -1,83 +1,48 @@
 ##---------------------------------------------------------------
 ##                           WORKLOADS
 ##---------------------------------------------------------------
-#apiVersion: apps/v1
-#kind: Deployment
-#metadata:
-#  namespace: sentry
-#  name: tool-sentry-worker
-#  labels:
-#    instance: tool-sentry-worker
-#spec:
-#  selector:
-#    matchLabels:
-#      instance: tool-sentry-worker
-#
-#  #Initial replicas
-#  replicas: 1
-#
-#  #Replacement strategy
-#  strategy:
-#    type: Recreate
-#
-#  #Template
-#  template:
-#    metadata:
-#      labels:
-#        instance: tool-sentry-worker
-#    spec:
-#      containers:
-#        - name: tool-sentry-worker
-#          image: sentry:9
-#          imagePullPolicy: IfNotPresent
-#
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  namespace: sentry
+  name: sentry-worker
+  labels:
+    instance: sentry-worker
+spec:
+  serviceName: sentry-worker
+  selector:
+    matchLabels:
+      instance: sentry-worker
+
+  #Initial replicas
+  replicas: 1
+
+  #Template
+  template:
+    metadata:
+      labels:
+        instance: sentry-worker
+    spec:
+      containers:
+        - name: sentry-worker
+          image: getsentry/sentry:20.10.1
+          imagePullPolicy: IfNotPresent
+
 #          resources:
 #            requests:
 #              memory: "350Mi"
-#
-#          envFrom:
-#            - configMapRef:
-#                name: tool-sentry
-#
-#          args: ["run", "worker"]
-#---
-#
-#apiVersion: apps/v1
-#kind: Deployment
-#metadata:
-#  namespace: sentry
-#  name: tool-sentry-cron
-#  labels:
-#    instance: tool-sentry-cron
-#spec:
-#  selector:
-#    matchLabels:
-#      instance: tool-sentry-cron
-#
-#  #Initial replicas
-#  replicas: 1
-#
-#  #Replacement strategy
-#  strategy:
-#    type: Recreate
-#
-#  #Template
-#  template:
-#    metadata:
-#      labels:
-#        instance: tool-sentry-cron
-#    spec:
-#      containers:
-#        - name: tool-sentry-cron
-#          image: sentry:9
-#          imagePullPolicy: IfNotPresent
-#
-#          resources:
-#            requests:
-#              memory: "150Mi"
-#
-#          envFrom:
-#            - configMapRef:
-#                name: tool-sentry
-#
-#          args: ["run", "cron"]
+
+          args: ["run", "worker"]
+
+          envFrom:
+            - configMapRef:
+                name: sentry
+
+          volumeMounts:
+            - name: sentry-data
+              mountPath: /data
+
+      volumes:
+        - name: sentry-data
+          persistentVolumeClaim:
+            claimName: sentry-data

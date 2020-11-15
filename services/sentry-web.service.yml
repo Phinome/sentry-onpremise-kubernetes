@@ -42,22 +42,22 @@ spec:
     spec:
       initContainers:
         #1) SENTRY POSTGRESQL DATABASE CREATION
-        - name: sentry-web-db-creation
-          image: postgres:12
-          imagePullPolicy: IfNotPresent
-
-          envFrom:
-            - configMapRef:
-                name: sentry
-          env:
-            - name: PGPASSWORD
-              valueFrom:
-                configMapKeyRef:
-                    name: sentry
-                    key: SENTRY_DB_PASSWORD
-
-          command: ["/bin/sh"]
-          args: ["-c", "createdb -h postgresql -U $(SENTRY_DB_USER) $(SENTRY_DB_NAME) || true"]
+#        - name: sentry-web-db-creation
+#          image: postgres:12
+#          imagePullPolicy: IfNotPresent
+#
+#          envFrom:
+#            - configMapRef:
+#                name: sentry
+#          env:
+#            - name: PGPASSWORD
+#              valueFrom:
+#                configMapKeyRef:
+#                    name: sentry
+#                    key: SENTRY_DB_PASSWORD
+#
+#          command: ["/bin/sh"]
+#          args: ["-c", "createdb -h postgresql -U $(SENTRY_DB_USER) $(SENTRY_DB_NAME) || true"]
 
         #2) SENTRY DATABASE UPDATE
         - name: sentry-web-db-update
@@ -84,10 +84,13 @@ spec:
           args: ["-c", "sentry createuser --no-input --email $(SENTRY_ADMIN_USER_EMAIL) --superuser --password $(SENTRY_ADMIN_USER_PASSWORD) || true"]
 
       containers:
-        #4) SENTRY WEB
         - name: sentry-web
           image: getsentry/sentry:20.10.1
           imagePullPolicy: IfNotPresent
+
+#          resources:
+#            requests:
+#              memory: "150Mi"
 
           ports:
             - containerPort: 9000

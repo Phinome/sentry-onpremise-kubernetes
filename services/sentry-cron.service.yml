@@ -1,42 +1,48 @@
 ##---------------------------------------------------------------
 ##                           WORKLOADS
 ##---------------------------------------------------------------
-#apiVersion: apps/v1
-#kind: Deployment
-#metadata:
-#  namespace: sentry
-#  name: tool-sentry-cron
-#  labels:
-#    instance: tool-sentry-cron
-#spec:
-#  selector:
-#    matchLabels:
-#      instance: tool-sentry-cron
-#
-#  #Initial replicas
-#  replicas: 1
-#
-#  #Replacement strategy
-#  strategy:
-#    type: Recreate
-#
-#  #Template
-#  template:
-#    metadata:
-#      labels:
-#        instance: tool-sentry-cron
-#    spec:
-#      containers:
-#        - name: tool-sentry-cron
-#          image: sentry:9
-#          imagePullPolicy: IfNotPresent
-#
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  namespace: sentry
+  name: sentry-cron
+  labels:
+    instance: sentry-cron
+spec:
+  serviceName: sentry-cron
+  selector:
+    matchLabels:
+      instance: sentry-cron
+
+  #Initial replicas
+  replicas: 1
+
+  #Template
+  template:
+    metadata:
+      labels:
+        instance: sentry-cron
+    spec:
+      containers:
+        - name: sentry-cron
+          image: getsentry/sentry:20.10.1
+          imagePullPolicy: IfNotPresent
+
 #          resources:
 #            requests:
 #              memory: "150Mi"
-#
-#          envFrom:
-#            - configMapRef:
-#                name: tool-sentry
-#
-#          args: ["run", "cron"]
+
+          args: ["run", "cron"]
+
+          envFrom:
+            - configMapRef:
+                name: sentry
+
+          volumeMounts:
+            - name: sentry-data
+              mountPath: /data
+
+      volumes:
+        - name: sentry-data
+          persistentVolumeClaim:
+            claimName: sentry-data
