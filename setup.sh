@@ -3,7 +3,7 @@
 #------------------------------
 microk8s install --mem 4 --cpu 2 --disk 15
 microk8s disable ha-cluster
-microk8s enable dns storage
+microk8s enable dns storage ingress
 
 #Writes the Kubernetes cluster IP on /etc/hosts
 sudo echo "$(multipass info microk8s-vm | grep IPv4 | awk '{ print $2 }')"' k8s.cluster' | sudo tee -a /etc/hosts
@@ -33,4 +33,4 @@ sudo echo "$(minikube ip)"' k8s.cluster' | sudo tee -a /etc/hosts
 # COMMON
 #------------------------------
 #Cert-Manager
-kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v1.0.4/cert-manager.yaml
+kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.1.0/cert-manager.yaml

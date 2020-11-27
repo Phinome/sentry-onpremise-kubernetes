@@ -1,0 +1,36 @@
+#---------------------------------------------------------------
+#                         CONFIGURATION
+#---------------------------------------------------------------
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  namespace: sentry
+  name: snuba
+data:
+  SNUBA_SETTINGS: 'docker'
+  CLICKHOUSE_HOST: 'clickhouse'
+  CLICKHOUSE_PORT: '8123'
+  DEFAULT_BROKERS: 'cp-kafka:9092'
+  REDIS_HOST: 'redis'
+  REDIS_PORT: '6379'
+  UWSGI_MAX_REQUESTS: '10000'
+  UWSGI_DISABLE_LOGGING: 'true'
+
+  settings.py: |
+    import os
+    from snuba.settings import *
+    env = os.environ.get
+    DEBUG = env("DEBUG", "0").lower() in ("1", "true")
+    # Clickhouse Options
+    CLUSTERS[0]["host"] = env("CLICKHOUSE_HOST", "clickhouse")
+    CLUSTERS[0]["port"] = int(env("CLICKHOUSE_PORT", 8123))
+    # FIXME: Snuba will be able to migrate multi node clusters in the future
+    CLUSTERS[0]["single_node"] = env("CLICKHOUSE_SINGLE_NODE", "false").lower() == "true"
+    # Redis Options
+    REDIS_HOST = "redis"
+    REDIS_PORT = 6379
+    REDIS_PASSWORD = ""
+    REDIS_DB = int(env("REDIS_DB", 1))
+    # Processor/Writer Options
+    DEFAULT_BROKERS = ["cp-kafka:9092"]
+    # No Python Extension Config Given

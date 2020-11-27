@@ -8,7 +8,7 @@ metadata:
   name: sentry
 data:
   SENTRY_SINGLE_ORGANIZATION: "true"
-  #MUST BE CHANGED with docker run --rm getsentry/sentry:20.10.1 config generate-secret-key
+  #MUST BE CHANGED with docker run --rm getsentry/sentry:20.11.1 config generate-secret-key
   SENTRY_SECRET_KEY: "gz)x*&-n5wl3yn#=kf1sud7-z@)w9z8jwyl9+dk5hpr(9d6cia"
   SENTRY_EVENT_RETENTION_DAYS: "90"
 
@@ -18,10 +18,10 @@ data:
   SENTRY_DB_PASSWORD: sentry
   SENTRY_DB_NAME: sentry
 
-  SENTRY_REDIS_HOST: redis
+  SENTRY_REDIS_HOST: "redis"
   SENTRY_REDIS_PORT: "6379"
 
-  SENTRY_EMAIL_HOST: "exim-smtp"
+  SENTRY_EMAIL_HOST: "localhost"
   SENTRY_EMAIL_PORT: "25"
   SENTRY_EMAIL_USER: ""
   SENTRY_EMAIL_PASSWORD: ""

@@ -17,8 +17,8 @@ data:
 
   KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CLUSTER:PLAINTEXT"
   KAFKA_INTER_BROKER_LISTENER_NAME: "CLUSTER"
-  KAFKA_LISTENERS: "CLUSTER://0.0.0.0:9094"
-  KAFKA_ADVERTISED_LISTENERS: "CLUSTER://cp-kafka:9094"
+  KAFKA_LISTENERS: "CLUSTER://0.0.0.0:9092"
+  KAFKA_ADVERTISED_LISTENERS: "CLUSTER://cp-kafka:9092"
 
   KAFKA_LOG4J_LOGGERS: "kafka.cluster=WARN,kafka.controller=WARN,kafka.coordinator=WARN,kafka.log=WARN,kafka.server=WARN,kafka.zookeeper=WARN,state.change.logger=WARN"
   KAFKA_LOG4J_ROOT_LOGLEVEL: "WARN"
@@ -26,3 +26,5 @@ data:
   KAFKA_LOG_RETENTION_HOURS: "24"
 
   CONFLUENT_SUPPORT_METRICS_ENABLE: "false"
+
+  #KAFKA_KERBEROS_PARAMS: "-Djava.security.auth.login.config=/etc/kafka/conf/kafka_jaas.conf"

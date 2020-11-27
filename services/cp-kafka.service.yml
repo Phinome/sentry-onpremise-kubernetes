@@ -9,7 +9,7 @@ metadata:
 spec:
   type: NodePort
   ports:
-    - port: 9094
+    - port: 9092
   selector:
     instance: cp-kafka
 ---
@@ -55,12 +55,13 @@ spec:
                 name: cp-kafka
 
           ports:
-            - containerPort: 9094
+            - containerPort: 9092
 
           command:
             - sh
             - -exc
             - |
+              rm /var/lib/kafka/data/meta.properties || true
               export KAFKA_BROKER_ID=${HOSTNAME##*-}
               exec /etc/confluent/docker/run
 

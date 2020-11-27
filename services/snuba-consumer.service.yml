@@ -2,17 +2,16 @@
 ##                           WORKLOADS
 ##---------------------------------------------------------------
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   namespace: sentry
-  name: sentry-cron
+  name: snuba-consumer
   labels:
-    instance: sentry-cron
+    instance: snuba-consumer
 spec:
-  serviceName: sentry-cron
   selector:
     matchLabels:
-      instance: sentry-cron
+      instance: snuba-consumer
 
   #Initial replicas
   replicas: 1
@@ -21,28 +20,19 @@ spec:
   template:
     metadata:
       labels:
-        instance: sentry-cron
+        instance: snuba-consumer
     spec:
       containers:
-        - name: sentry-cron
-          image: getsentry/sentry:20.11.1
+        - name: snuba-consumer
+          image: getsentry/snuba:20.11.1
           imagePullPolicy: IfNotPresent
 
 #          resources:
 #            requests:
 #              memory: "150Mi"
 
-          args: ["run", "cron"]
+          args: ["consumer", "--storage", "events", "--auto-offset-reset=latest", "--max-batch-time-ms", "750"]
 
           envFrom:
             - configMapRef:
-                name: sentry
-
-          volumeMounts:
-            - name: sentry-data
-              mountPath: /data
-
-      volumes:
-        - name: sentry-data
-          persistentVolumeClaim:
-            claimName: sentry-data
+                name: snuba
