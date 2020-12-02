@@ -5,13 +5,13 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: sentry
-  name: snuba-consumer
+  name: snuba-consumer-transactions
   labels:
-    instance: snuba-consumer
+    instance: snuba-consumer-transactions
 spec:
   selector:
     matchLabels:
-      instance: snuba-consumer
+      instance: snuba-consumer-transactions
 
   #Initial replicas
   replicas: 1
@@ -20,10 +20,10 @@ spec:
   template:
     metadata:
       labels:
-        instance: snuba-consumer
+        instance: snuba-consumer-transactions
     spec:
       containers:
-        - name: snuba-consumer
+        - name: snuba-consumer-transactions
           image: getsentry/snuba:20.11.1
           imagePullPolicy: IfNotPresent
 
@@ -32,10 +32,10 @@ spec:
 #              memory: "150Mi"
 
           command: ["snuba", "consumer",
-                    "--storage", "events",
-                    "--auto-offset-reset=latest",
-                    "--max-batch-time-ms", "750",
-                    "--log-level", "DEBUG"]
+                  "--storage", "transactions",
+                  "--consumer-group", "transactions_group",
+                  "--auto-offset-reset=latest",
+                  "--max-batch-time-ms", "750"]
 
           envFrom:
             - configMapRef:

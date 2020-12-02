@@ -60,6 +60,7 @@ spec:
             periodSeconds: 10
             successThreshold: 1
             timeoutSeconds: 2
+
           readinessProbe:
             failureThreshold: 10
             httpGet:
@@ -71,8 +72,28 @@ spec:
             successThreshold: 1
             timeoutSeconds: 2
 
-          command: ["snuba", "api"]
+          command: ["snuba", "api", "--log-level", "DEBUG"]
 
           envFrom:
             - configMapRef:
                 name: snuba
+
+
+
+COLOCAR NUM JOB?
+  echo "Bootstrapping and migrating Snuba..."
+  $dcr snuba-api bootstrap --no-migrate --force
+  $dcr snuba-api migrations migrate --force
+  echo ""
+
+    initContainers:
+      #1) MIGRATE
+      - name: snuba-api-db-migrate
+        image: getsentry/snuba:20.11.1
+        imagePullPolicy: IfNotPresent
+
+        command: ["snuba", "migrations", "migrate", "--force"]
+
+        envFrom:
+          - configMapRef:
+              name: snuba

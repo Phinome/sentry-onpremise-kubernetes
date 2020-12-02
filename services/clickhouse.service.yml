@@ -9,7 +9,7 @@ metadata:
 spec:
   type: NodePort
   ports:
-    - port: 8123
+    - port: 9000
   selector:
     instance: clickhouse
 ---
@@ -50,7 +50,7 @@ spec:
 #              memory: "120Mi"
 
           ports:
-            - containerPort: 8123
+            - containerPort: 9000
 
           volumeMounts:
             - mountPath: /var/lib/clickhouse

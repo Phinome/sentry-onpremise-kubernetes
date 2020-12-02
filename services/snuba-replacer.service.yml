@@ -5,13 +5,13 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: sentry
-  name: snuba-consumer
+  name: snuba-replacer
   labels:
-    instance: snuba-consumer
+    instance: snuba-replacer
 spec:
   selector:
     matchLabels:
-      instance: snuba-consumer
+      instance: snuba-replacer
 
   #Initial replicas
   replicas: 1
@@ -20,10 +20,10 @@ spec:
   template:
     metadata:
       labels:
-        instance: snuba-consumer
+        instance: snuba-replacer
     spec:
       containers:
-        - name: snuba-consumer
+        - name: snuba-replacer
           image: getsentry/snuba:20.11.1
           imagePullPolicy: IfNotPresent
 
@@ -31,11 +31,10 @@ spec:
 #            requests:
 #              memory: "150Mi"
 
-          command: ["snuba", "consumer",
+          command: ["snuba", "replacer",
                     "--storage", "events",
                     "--auto-offset-reset=latest",
-                    "--max-batch-time-ms", "750",
-                    "--log-level", "DEBUG"]
+                    "--max-batch-size", "3"]
 
           envFrom:
             - configMapRef:
