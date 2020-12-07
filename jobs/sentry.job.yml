@@ -18,7 +18,7 @@ spec:
             - sh
             - -exc
             - |
-              sentry upgrade --noinput
+              sentry upgrade --noinput --verbosity 1
               sentry createuser --no-input --email $(SENTRY_ADMIN_USER_EMAIL) --superuser --password $(SENTRY_ADMIN_USER_PASSWORD) || true
 
           envFrom:
