@@ -1,0 +1,30 @@
+#---------------------------------------------------------------
+#                             JOB
+#---------------------------------------------------------------
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: sentry
+  name: snuba
+spec:
+  template:
+    spec:
+      containers:
+        - name: snuba-job
+          image: getsentry/snuba:20.11.1
+          imagePullPolicy: IfNotPresent
+
+          command:
+            - sh
+            - -exc
+            - |
+              snuba bootstrap --no-migrate --force || true
+              snuba migrations migrate --force  || true
+
+          envFrom:
+            - configMapRef:
+                name: snuba
+
+      restartPolicy: Never
+  backoffLimit: 6
+  ttlSecondsAfterFinished: 120
