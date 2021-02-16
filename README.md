@@ -18,15 +18,14 @@
 **To start, just review each configuration first so you can**
 
 > kubectl apply -f
-
-/sentry.namespace.yml
-/configurations;
-/volumes;
-/services/(non-sentry: clickhouse, kafka, zookeeper, postgresql, redis);
-/jobs/bootstrap;
-/services/(sentry ones: sentry-web, sentry-relay, sentry-snuba-api);
-/jobs
-/ingress
+ - [ ] /sentry.namespace.yml 
+ - [ ] /configurations; 
+ - [ ] /volumes;
+ - [ ] /services/(non-sentry: clickhouse, kafka, zookeeper, postgresql, redis); 
+ - [ ] /jobs/bootstrap; 
+ - [ ] /services/(sentry ones: sentry-web, sentry-relay, sentry-snuba-api); 
+ - [ ] /jobs 
+ - [ ] /ingress
 
 **Services:**
  - clickhouse.service.yml 
