@@ -1,0 +1,38 @@
+#---------------------------------------------------------------
+#                             JOBS
+#---------------------------------------------------------------
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: sentry
+  name: sentry-cron
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+
+      containers:
+        - name: sentry-cron
+          image: getsentry/sentry:21.1.0
+          imagePullPolicy: IfNotPresent
+
+          envFrom:
+            - configMapRef:
+                name: sentry
+
+          command: ["sentry", "run", "cron", "--loglevel=WARNING"]
+
+          volumeMounts:
+            - name: sentry-data
+              mountPath: /data
+            - name: sentry-configuration
+              mountPath: /etc/sentry
+
+      volumes:
+        - name: sentry-data
+          persistentVolumeClaim:
+            claimName: sentry-data
+        - name: sentry-configuration
+          configMap:
+            name: sentry
+---

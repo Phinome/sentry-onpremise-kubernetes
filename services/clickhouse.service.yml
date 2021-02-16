@@ -9,7 +9,12 @@ metadata:
 spec:
   type: NodePort
   ports:
-    - port: 9000
+    - name: "9000"
+      port: 9000
+    - name: "9009"
+      port: 9009
+    - name: "8123"
+      port: 8123
   selector:
     instance: clickhouse
 ---
@@ -42,7 +47,7 @@ spec:
     spec:
       containers:
         - name: clickhouse
-          image: yandex/clickhouse-server:20
+          image: yandex/clickhouse-server:20.3.9.70
           imagePullPolicy: IfNotPresent
 
 #          resources:
@@ -51,6 +56,8 @@ spec:
 
           ports:
             - containerPort: 9000
+            - containerPort: 9009
+            - containerPort: 8123
 
           volumeMounts:
             - mountPath: /var/lib/clickhouse
@@ -65,4 +72,3 @@ spec:
         - name: clickhouse-log
           persistentVolumeClaim:
             claimName: clickhouse-log
-

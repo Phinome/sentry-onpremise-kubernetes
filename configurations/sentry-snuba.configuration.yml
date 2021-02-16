@@ -1,0 +1,22 @@
+#---------------------------------------------------------------
+#                         CONFIGURATION
+#---------------------------------------------------------------
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  namespace: sentry
+  name: sentry-snuba
+data:
+  SNUBA_SETTINGS: "docker"
+
+  UWSGI_MAX_REQUESTS: "10000"
+  UWSGI_DISABLE_LOGGING: "true"
+
+  CLICKHOUSE_HOST: "clickhouse.sentry.svc.cluster.local"
+  CLICKHOUSE_PORT: "9000"
+  CLICKHOUSE_SINGLE_NODE: "true"
+
+  REDIS_HOST: "redis.sentry.svc.cluster.local"
+  REDIS_PORT: "6379"
+
+  DEFAULT_BROKERS: "cp-kafka.sentry.svc.cluster.local:9092"

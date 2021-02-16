@@ -1,0 +1,29 @@
+#---------------------------------------------------------------
+#                             CRON JOBS
+#---------------------------------------------------------------
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  namespace: sentry
+  name: sentry-snuba-cleanup-job
+spec:
+  schedule: "*/5 * * * *" #Every 5min
+  successfulJobsHistoryLimit: 0
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 100
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: sentry-snuba-cleanup-job
+              image: getsentry/snuba:21.1.0
+              imagePullPolicy: IfNotPresent
+
+              envFrom:
+                - configMapRef:
+                    name: sentry-snuba
+
+              command: ["snuba", "cleanup", "--dry-run", "False"]

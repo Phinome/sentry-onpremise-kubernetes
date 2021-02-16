@@ -1,0 +1,86 @@
+#---------------------------------------------------------------
+#                             SERVICES
+#---------------------------------------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: sentry
+  name: sentry-relay
+spec:
+  type: NodePort
+  ports:
+      - port: 3000
+  selector:
+    instance: sentry-relay
+---
+
+##---------------------------------------------------------------
+##                           WORKLOADS
+##---------------------------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: sentry
+  name: sentry-relay
+  labels:
+    instance: sentry-relay
+spec:
+  selector:
+    matchLabels:
+      instance: sentry-relay
+
+  #Initial replicas
+  replicas: 1
+
+  #Template
+  template:
+    metadata:
+      labels:
+        instance: sentry-relay
+    spec:
+      initContainers:
+        - name: sentry-relay-credentials-generate
+          image: getsentry/relay:21.1.0
+          imagePullPolicy: IfNotPresent
+
+          command:
+            - sh
+            - -exc
+            - |
+              echo 'Preparing the relay config'
+              cp /tmp/config.yml /work/.relay
+
+              echo 'Generating credentials'
+              relay credentials generate
+
+              chown -R $(whoami) /work/
+              chmod -R 777 /work/
+
+          volumeMounts:
+            - name: sentry-relay-work
+              mountPath: /work/.relay
+            - name: sentry-relay-configuration
+              mountPath: /tmp/
+
+      containers:
+        - name: sentry-relay
+          image: getsentry/relay:21.1.0
+          imagePullPolicy: IfNotPresent
+
+#          resources:
+#            requests:
+#              memory: "150Mi"
+
+          ports:
+            - containerPort: 3000
+
+          volumeMounts:
+            - name: sentry-relay-work
+              mountPath: /work/.relay
+
+      volumes:
+        - name: sentry-relay-work
+          emptyDir: {}
+        - name: sentry-relay-configuration
+          configMap:
+            name: sentry-relay

@@ -1,0 +1,79 @@
+#---------------------------------------------------------------
+#                             SERVICES
+#---------------------------------------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: sentry
+  name: sentry-snuba-api
+spec:
+  type: NodePort
+  ports:
+    - port: 1218
+  selector:
+    instance: sentry-snuba-api
+---
+
+##---------------------------------------------------------------
+##                           WORKLOADS
+##---------------------------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: sentry
+  name: sentry-snuba-api
+  labels:
+    instance: sentry-snuba-api
+spec:
+  selector:
+    matchLabels:
+      instance: sentry-snuba-api
+
+  #Initial replicas
+  replicas: 1
+
+  #Template
+  template:
+    metadata:
+      labels:
+        instance: sentry-snuba-api
+    spec:
+      containers:
+        - name: sentry-snuba-api
+          image: getsentry/snuba:21.1.0
+          imagePullPolicy: IfNotPresent
+
+#          resources:
+#            requests:
+#              memory: "150Mi"
+
+          ports:
+            - containerPort: 1218
+
+          livenessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /
+              port: 1218
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 2
+
+          readinessProbe:
+            failureThreshold: 10
+            httpGet:
+              path: /
+              port: 1218
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 2
+
+          command: ["snuba", "api", "--log-level", "WARN"]
+
+          envFrom:
+            - configMapRef:
+                name: sentry-snuba

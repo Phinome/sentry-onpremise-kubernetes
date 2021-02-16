@@ -1,0 +1,43 @@
+#---------------------------------------------------------------
+#                             CRON JOBS
+#---------------------------------------------------------------
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  namespace: sentry
+  name: sentry-cleanup-job
+spec:
+  schedule: "0 0 * * *" #Every day at midnight.
+  successfulJobsHistoryLimit: 0
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 100
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: sentry-cleanup-job
+              image: getsentry/sentry:21.1.0
+              imagePullPolicy: IfNotPresent
+
+              envFrom:
+                - configMapRef:
+                    name: sentry
+
+              command: ["sentry", "cleanup", "--days=30", "--loglevel=DEBUG"]
+
+              volumeMounts:
+                - name: sentry-data
+                  mountPath: /data
+                - name: sentry-configuration
+                  mountPath: /etc/sentry
+
+          volumes:
+            - name: sentry-data
+              persistentVolumeClaim:
+                claimName: sentry-data
+            - name: sentry-configuration
+              configMap:
+                name: sentry

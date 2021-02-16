@@ -1,0 +1,146 @@
+#---------------------------------------------------------------
+#                             JOBS
+#---------------------------------------------------------------
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: sentry
+  name: sentry-messaging-ingest-consumer-job
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+
+      containers:
+        - name: sentry-messaging-ingest-consumer-job
+          image: getsentry/sentry:21.1.0
+          imagePullPolicy: IfNotPresent
+
+          envFrom:
+            - configMapRef:
+                name: sentry
+
+          command: ["sentry", "run", "ingest-consumer","--all-consumer-types"]
+
+          volumeMounts:
+            - name: sentry-data
+              mountPath: /data
+            - name: sentry-configuration
+              mountPath: /etc/sentry
+
+      volumes:
+        - name: sentry-data
+          persistentVolumeClaim:
+            claimName: sentry-data
+        - name: sentry-configuration
+          configMap:
+            name: sentry
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: sentry
+  name: sentry-messaging-post-process-forwarder-job
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+
+      containers:
+        - name: sentry-messaging-post-process-forwarder-job
+          image: getsentry/sentry:21.1.0
+          imagePullPolicy: IfNotPresent
+
+          envFrom:
+            - configMapRef:
+                name: sentry
+
+          command: ["sentry", "run", "post-process-forwarder","--commit-batch-size", "1"]
+
+          volumeMounts:
+            - name: sentry-data
+              mountPath: /data
+            - name: sentry-configuration
+              mountPath: /etc/sentry
+
+      volumes:
+        - name: sentry-data
+          persistentVolumeClaim:
+            claimName: sentry-data
+        - name: sentry-configuration
+          configMap:
+            name: sentry
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: sentry
+  name: sentry-messaging-query-subscription-consumer-events-job
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+
+      containers:
+        - name: sentry-messaging-query-subscription-consumer-events-job
+          image: getsentry/sentry:21.1.0
+          imagePullPolicy: IfNotPresent
+
+          envFrom:
+            - configMapRef:
+                name: sentry
+
+          command: ["sentry", "run", "query-subscription-consumer","--commit-batch-size", "1", "--topic", "events-subscription-results"]
+
+          volumeMounts:
+            - name: sentry-data
+              mountPath: /data
+            - name: sentry-configuration
+              mountPath: /etc/sentry
+
+      volumes:
+        - name: sentry-data
+          persistentVolumeClaim:
+            claimName: sentry-data
+        - name: sentry-configuration
+          configMap:
+            name: sentry
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: sentry
+  name: sentry-messaging-query-subscription-consumer-results-job
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+
+      containers:
+        - name: sentry-messaging-query-subscription-consumer-results-job
+          image: getsentry/sentry:21.1.0
+          imagePullPolicy: IfNotPresent
+
+          envFrom:
+            - configMapRef:
+                name: sentry
+
+          command: ["sentry", "run", "query-subscription-consumer","--commit-batch-size", "1", "--topic", "transactions-subscription-results"]
+
+          volumeMounts:
+            - name: sentry-data
+              mountPath: /data
+            - name: sentry-configuration
+              mountPath: /etc/sentry
+
+      volumes:
+        - name: sentry-data
+          persistentVolumeClaim:
+            claimName: sentry-data
+        - name: sentry-configuration
+          configMap:
+            name: sentry
+---

@@ -9,7 +9,9 @@ metadata:
 spec:
   type: NodePort
   ports:
-    - port: 9092
+    - name: "9092"
+      port: 9092
+      targetPort: 9092
   selector:
     instance: cp-kafka
 ---
@@ -41,14 +43,30 @@ spec:
         instance: cp-kafka
 
     spec:
+      initContainers:
+        - name: cp-kafka-fs-permission
+          image: confluentinc/cp-kafka:6.0.1
+          imagePullPolicy: IfNotPresent
+
+          command: ["chown", "-R", "1000:1000", "/var/lib/kafka"]
+
+          volumeMounts:
+            - mountPath: /var/lib/kafka/data
+              name: cp-kafka-data
+            - mountPath: /var/lib/kafka/log
+              name: cp-kafka-log
+
+          securityContext:
+            runAsUser: 0
+
       containers:
         - name: cp-kafka
-          image: confluentinc/cp-kafka:6.0.0
+          image: confluentinc/cp-kafka:6.0.1
           imagePullPolicy: IfNotPresent
 
 #          resources:
 #            requests:
-#              memory: "400Mi"
+#              memory: "1024Mi"
 
           envFrom:
             - configMapRef:
@@ -61,8 +79,14 @@ spec:
             - sh
             - -exc
             - |
-              rm /var/lib/kafka/data/meta.properties || true
+              rm -Rf /var/lib/kafka/data/lost+found || true
+
               export KAFKA_BROKER_ID=${HOSTNAME##*-}
+              export KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=DEFAULT:PLAINTEXT
+              export KAFKA_LISTENERS=DEFAULT://0.0.0.0:9092
+              export KAFKA_ADVERTISED_LISTENERS=DEFAULT://${HOSTNAME}.cp-kafka.sentry.svc.cluster.local:9092
+              export KAFKA_INTER_BROKER_LISTENER_NAME=DEFAULT
+
               exec /etc/confluent/docker/run
 
           volumeMounts:
@@ -70,16 +94,21 @@ spec:
               name: cp-kafka-data
             - mountPath: /var/lib/kafka/log
               name: cp-kafka-log
-            - mountPath: /etc/kafka/secrets
-              name: cp-kafka-secrets
 
-      volumes:
-        - name: cp-kafka-data
-          persistentVolumeClaim:
-            claimName: cp-kafka-data
-        - name: cp-kafka-log
-          persistentVolumeClaim:
-            claimName: cp-kafka-log
-        - name: cp-kafka-secrets
-          persistentVolumeClaim:
-            claimName: sentry-secrets
+  volumeClaimTemplates:
+    - metadata:
+        namespace: sentry
+        name: cp-kafka-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 10Gi
+    - metadata:
+        namespace: sentry
+        name: cp-kafka-log
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 128Mi

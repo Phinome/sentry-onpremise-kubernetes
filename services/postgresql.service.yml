@@ -7,66 +7,7 @@ metadata:
   namespace: sentry
   name: postgresql
 spec:
-  type: NodePort
+  type: ExternalName
+  externalName: your-external-postgrsql.domain.com
   ports:
     - port: 5432
-  selector:
-    instance: postgresql
----
-
-#---------------------------------------------------------------
-#                           WORKLOADS
-#---------------------------------------------------------------
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  namespace: sentry
-  name: postgresql
-  labels:
-    instance: postgresql
-
-spec:
-  serviceName: postgresql
-  selector:
-    matchLabels:
-      instance: postgresql
-
-  #Initial replicas
-  replicas: 1
-
-  #Template
-  template:
-    metadata:
-      labels:
-        instance: postgresql
-
-    spec:
-      containers:
-        - name: postgresql
-          image: postgres:12
-          imagePullPolicy: IfNotPresent
-
-#          resources:
-#            requests:
-#              memory: "300Mi"
-
-          envFrom:
-            - configMapRef:
-                name: postgresql
-
-          ports:
-            - containerPort: 5432
-
-          command:
-            - "docker-entrypoint.sh"
-            - "-c"
-            - "max_locks_per_transaction=500"
-
-          volumeMounts:
-            - name: postgresql-data
-              mountPath: /data/postgresql
-
-      volumes:
-        - name: postgresql-data
-          persistentVolumeClaim:
-            claimName: postgresql-data

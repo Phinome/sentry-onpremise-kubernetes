@@ -43,6 +43,17 @@ spec:
         instance: redis
 
     spec:
+      initContainers:
+        - name: redis-disable-thp #Transparent Huge Pages (THP)
+          image: redis:5
+          imagePullPolicy: IfNotPresent
+
+          command: ["sh", "-c", "echo never > /host-sys/kernel/mm/transparent_hugepage/enabled"]
+
+          volumeMounts:
+            - name: host-sys
+              mountPath: /host-sys
+
       containers:
         - name: redis
           image: redis:5
@@ -54,3 +65,8 @@ spec:
 
           ports:
             - containerPort: 6379
+
+      volumes:
+        - name: host-sys
+          hostPath:
+            path: /sys

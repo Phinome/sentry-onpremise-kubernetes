@@ -1,0 +1,45 @@
+#---------------------------------------------------------------
+#                             CRON JOBS
+#---------------------------------------------------------------
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: sentry
+  name: geoip-bootstrap-job
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 60
+
+  template:
+    spec:
+      restartPolicy: Never
+
+      containers:
+        - name: geoip-job
+          image: maxmindinc/geoipupdate
+          imagePullPolicy: IfNotPresent
+
+          envFrom:
+            - configMapRef:
+                name: geoip
+
+          command:
+            - sh
+            - -exc
+            - |
+              geoipupdate --database-directory /data --config-file /etc/geoip/GeoIP.conf --verbose
+
+          volumeMounts:
+            - name: sentry-data
+              mountPath: /data
+            - name: geoip-configuration
+              mountPath: /etc/geoip
+
+      volumes:
+        - name: sentry-data
+          persistentVolumeClaim:
+            claimName: sentry-data
+        - name: geoip-configuration
+          configMap:
+            name: geoip
+

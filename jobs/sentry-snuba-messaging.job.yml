@@ -1,0 +1,195 @@
+#---------------------------------------------------------------
+#                             JOBS
+#---------------------------------------------------------------
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: sentry
+  name: sentry-snuba-messaging-consumer-events-job
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+
+      containers:
+        - name: sentry-snuba-messaging-consumer-events-job
+          image: getsentry/snuba:21.1.0
+          imagePullPolicy: IfNotPresent
+
+          envFrom:
+            - configMapRef:
+                name: sentry-snuba
+
+          command: ["snuba", "consumer",
+                    "--storage", "events",
+                    "--auto-offset-reset=latest",
+                    "--max-batch-time-ms", "750",
+                    "--log-level", "WARNING"]
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: sentry
+  name: sentry-snuba-messaging-consumer-outcomes-job
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+
+      containers:
+        - name: sentry-snuba-messaging-consumer-outcomes-job
+          image: getsentry/snuba:21.1.0
+          imagePullPolicy: IfNotPresent
+
+          envFrom:
+            - configMapRef:
+                name: sentry-snuba
+
+          command: ["snuba", "consumer",
+                    "--storage", "outcomes_raw",
+                    "--auto-offset-reset=earliest",
+                    "--max-batch-time-ms", "750",
+                    "--log-level", "WARNING"]
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: sentry
+  name: sentry-snuba-messaging-consumer-sessions-job
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+
+      containers:
+        - name: sentry-snuba-messaging-consumer-sessions-job
+          image: getsentry/snuba:21.1.0
+          imagePullPolicy: IfNotPresent
+
+          envFrom:
+            - configMapRef:
+                name: sentry-snuba
+
+          command: ["snuba", "consumer",
+                    "--storage", "sessions_raw",
+                    "--auto-offset-reset=latest",
+                    "--max-batch-time-ms", "750",
+                    "--log-level", "WARNING"]
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: sentry
+  name: sentry-snuba-messaging-consumer-transactions-job
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+
+      containers:
+        - name: sentry-snuba-messaging-consumer-transactions-job
+          image: getsentry/snuba:21.1.0
+          imagePullPolicy: IfNotPresent
+
+          envFrom:
+            - configMapRef:
+                name: sentry-snuba
+
+          command: ["snuba", "consumer",
+                    "--storage", "transactions",
+                    "--consumer-group", "transactions_group",
+                    "--auto-offset-reset=latest",
+                    "--max-batch-time-ms", "750",
+                    "--log-level", "WARNING"]
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: sentry
+  name: sentry-snuba-messaging-replacer-events-job
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+
+      containers:
+        - name: sentry-snuba-messaging-replacer-events-job
+          image: getsentry/snuba:21.1.0
+          imagePullPolicy: IfNotPresent
+
+          envFrom:
+            - configMapRef:
+                name: sentry-snuba
+
+          command: ["snuba", "replacer",
+                    "--storage", "events",
+                    "--auto-offset-reset=latest",
+                    "--max-batch-size", "3",
+                    "--log-level", "WARNING"]
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: sentry
+  name: sentry-snuba-messaging-subscriptions-events-job
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+
+      containers:
+        - name: sentry-snuba-messaging-subscriptions-events-job
+          image: getsentry/snuba:21.1.0
+          imagePullPolicy: IfNotPresent
+
+          envFrom:
+            - configMapRef:
+                name: sentry-snuba
+
+          command: ["snuba", "subscriptions",
+                    "--auto-offset-reset=latest",
+                    "--consumer-group=snuba-events-subscriptions-consumers",
+                    "--topic=events",
+                    "--result-topic=events-subscription-results",
+                    "--dataset=events",
+                    "--commit-log-topic=snuba-commit-log",
+                    "--commit-log-group=snuba-consumers",
+                    "--delay-seconds=60",
+                    "--schedule-ttl=60"]
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: sentry
+  name: sentry-snuba-messaging-subscriptions-transactions-job
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+
+      containers:
+        - name: sentry-snuba-messaging-subscriptions-transactions-job
+          image: getsentry/snuba:21.1.0
+          imagePullPolicy: IfNotPresent
+
+          envFrom:
+            - configMapRef:
+                name: sentry-snuba
+
+          command: ["snuba", "subscriptions",
+                    "--auto-offset-reset=latest",
+                    "--consumer-group=snuba-transactions-subscriptions-consumers",
+                    "--topic=events",
+                    "--result-topic=transactions-subscription-results",
+                    "--dataset=transactions",
+                    "--commit-log-topic=snuba-commit-log",
+                    "--commit-log-group=transactions_group",
+                    "--delay-seconds=60",
+                    "--schedule-ttl=60"]
+---

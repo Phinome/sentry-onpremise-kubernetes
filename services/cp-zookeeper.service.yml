@@ -40,14 +40,30 @@ spec:
         instance: cp-zookeeper
 
     spec:
-      containers:
-        - name: cp-zookeeper
-          image: confluentinc/cp-zookeeper:6.0.0
+      initContainers:
+        - name: cp-zookeeper-fs-permission
+          image: confluentinc/cp-zookeeper:6.0.1
           imagePullPolicy: IfNotPresent
 
-#          resources:
-#            requests:
-#              memory: "120Mi"
+          command: ["chown", "-R", "1000:1000", "/var/lib/zookeeper"]
+
+          volumeMounts:
+            - mountPath: /var/lib/zookeeper/data
+              name: cp-zookeeper-data
+            - mountPath: /var/lib/zookeeper/log
+              name: cp-zookeeper-log
+
+          securityContext:
+            runAsUser: 0
+
+      containers:
+        - name: cp-zookeeper
+          image: confluentinc/cp-zookeeper:6.0.1
+          imagePullPolicy: IfNotPresent
+
+          resources:
+            requests:
+              memory: "120Mi"
 
           envFrom:
             - configMapRef:
@@ -68,16 +84,21 @@ spec:
               name: cp-zookeeper-data
             - mountPath: /var/lib/zookeeper/log
               name: cp-zookeeper-log
-            - mountPath: /etc/zookeeper/secrets
-              name: cp-zookeeper-secrets
 
-      volumes:
-        - name: cp-zookeeper-data
-          persistentVolumeClaim:
-            claimName: cp-zookeeper-data
-        - name: cp-zookeeper-log
-          persistentVolumeClaim:
-            claimName: cp-zookeeper-log
-        - name: cp-zookeeper-secrets
-          persistentVolumeClaim:
-            claimName: sentry-secrets
+  volumeClaimTemplates:
+    - metadata:
+        namespace: sentry
+        name: cp-zookeeper-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 256Mi
+    - metadata:
+        namespace: sentry
+        name: cp-zookeeper-log
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 128Mi

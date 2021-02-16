@@ -1,0 +1,19 @@
+#---------------------------------------------------------------
+#                         CONFIGURATION
+#---------------------------------------------------------------
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  namespace: sentry
+  name: geoip
+data:
+  GeoIP.conf: |-
+    # `AccountID` is from your MaxMind account.
+    AccountID 0000000
+
+    # Replace YOUR_LICENSE_KEY_HERE with an active license key associated
+    # with your MaxMind account.
+    LicenseKey 0000000000000000000
+
+    # `EditionIDs` is from your MaxMind account.
+    EditionIDs GeoLite2-City

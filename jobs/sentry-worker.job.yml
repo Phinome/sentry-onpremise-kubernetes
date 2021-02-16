@@ -1,0 +1,42 @@
+#---------------------------------------------------------------
+#                             JOBS
+#---------------------------------------------------------------
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: sentry
+  name: sentry-worker
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+
+      containers:
+        - name: sentry-worker
+          image: getsentry/sentry:21.1.0
+          imagePullPolicy: IfNotPresent
+
+          env:
+            - name: C_FORCE_ROOT
+              value: "true"
+
+          envFrom:
+            - configMapRef:
+                name: sentry
+
+          command: ["sentry", "run", "worker", "--loglevel=WARNING"]
+
+          volumeMounts:
+            - name: sentry-data
+              mountPath: /data
+            - name: sentry-configuration
+              mountPath: /etc/sentry
+
+      volumes:
+        - name: sentry-data
+          persistentVolumeClaim:
+            claimName: sentry-data
+        - name: sentry-configuration
+          configMap:
+            name: sentry
+---

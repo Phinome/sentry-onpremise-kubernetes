@@ -1,0 +1,65 @@
+#---------------------------------------------------------------
+#                             JOB
+#---------------------------------------------------------------
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: sentry
+  name: sentry-bootstrap-upgrade-job
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 60
+
+  template:
+    spec:
+      restartPolicy: Never
+
+      initContainers:
+        - name: sentry-create-database-job
+          image: postgres:12
+          imagePullPolicy: IfNotPresent
+
+          envFrom:
+            - configMapRef:
+                name: sentry
+
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: sentry
+                  key: SENTRY_DB_PASSWORD
+
+          command: ["/bin/sh"]
+          args: ["-c", "createdb -h postgresql.sentry.svc.cluster.local -U $(SENTRY_DB_USER) $(SENTRY_DB_NAME) || true"]
+
+      containers:
+        - name: sentry-bootstrap-upgrade-job
+          image: getsentry/sentry:21.1.0
+          imagePullPolicy: IfNotPresent
+
+          command:
+            - sh
+            - -exc
+            - |
+              sentry upgrade --noinput --verbosity 1
+              sentry createuser --no-input --email $(SENTRY_ADMIN_USER_EMAIL) --superuser --password $(SENTRY_ADMIN_USER_PASSWORD) || true
+
+          envFrom:
+            - configMapRef:
+                name: sentry
+
+          volumeMounts:
+            - name: sentry-data
+              mountPath: /data
+            - name: sentry-configuration
+              mountPath: /etc/sentry
+
+      volumes:
+        - name: sentry-data
+          persistentVolumeClaim:
+            claimName: sentry-data
+        - name: sentry-configuration
+          configMap:
+            name: sentry
+

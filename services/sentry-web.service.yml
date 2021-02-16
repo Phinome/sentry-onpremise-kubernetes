@@ -9,8 +9,7 @@ metadata:
 spec:
   type: NodePort
   ports:
-    - port: 80
-      targetPort: 9000
+    - port: 9000
   selector:
     instance: sentry-web
 ---
@@ -42,12 +41,12 @@ spec:
     spec:
       containers:
         - name: sentry-web
-          image: getsentry/sentry:20.11.1
+          image: getsentry/sentry:21.1.0
           imagePullPolicy: IfNotPresent
 
 #          resources:
 #            requests:
-#              memory: "150Mi"
+#              memory: "512Mi"
 
           ports:
             - containerPort: 9000
@@ -68,8 +67,14 @@ spec:
           volumeMounts:
             - name: sentry-data
               mountPath: /data
+            - name: sentry-configuration
+              mountPath: /etc/sentry
 
       volumes:
         - name: sentry-data
           persistentVolumeClaim:
             claimName: sentry-data
+        - name: sentry-configuration
+          configMap:
+            name: sentry
+

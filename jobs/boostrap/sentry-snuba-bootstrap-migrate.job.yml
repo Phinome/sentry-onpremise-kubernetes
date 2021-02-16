@@ -1,0 +1,57 @@
+#---------------------------------------------------------------
+#                             JOB
+#---------------------------------------------------------------
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: sentry
+  name: sentry-snuba-bootstrap-migrate-job
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 60
+
+  template:
+    spec:
+      restartPolicy: Never
+
+      initContainers:
+        - name: sentry-snuba-delete-topics
+          image: confluentinc/cp-kafka:6.0.1
+          imagePullPolicy: IfNotPresent
+
+          envFrom:
+            - configMapRef:
+                name: sentry-snuba
+
+          command:
+            - sh
+            - -exc
+            - |
+              kafka-topics --list --bootstrap-server $(DEFAULT_BROKERS)
+
+              kafka-topics --delete --topic events --bootstrap-server $(DEFAULT_BROKERS) || true
+              kafka-topics --delete --topic errors-replacements --bootstrap-server $(DEFAULT_BROKERS) || true
+              kafka-topics --delete --topic cdc --bootstrap-server $(DEFAULT_BROKERS) || true
+              kafka-topics --delete --topic ingest-sessions --bootstrap-server $(DEFAULT_BROKERS) || true
+              kafka-topics --delete --topic outcomes --bootstrap-server $(DEFAULT_BROKERS) || true
+              kafka-topics --delete --topic event-replacements --bootstrap-server $(DEFAULT_BROKERS) || true
+              kafka-topics --delete --topic snuba-commit-log --bootstrap-server $(DEFAULT_BROKERS) || true
+
+              kafka-topics --list --bootstrap-server $(DEFAULT_BROKERS)
+
+      containers:
+        - name: sentry-snuba-bootstrap-migrate-job
+          image: getsentry/snuba:21.1.0
+          imagePullPolicy: IfNotPresent
+
+          command:
+            - sh
+            - -exc
+            - |
+              snuba bootstrap --no-migrate --force || true
+              snuba migrations migrate --force  || true
+
+          envFrom:
+            - configMapRef:
+                name: sentry-snuba
+
