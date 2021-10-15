@@ -18,7 +18,7 @@ spec:
 #                           WORKLOADS
 #---------------------------------------------------------------
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   namespace: monitor
   name: redis
