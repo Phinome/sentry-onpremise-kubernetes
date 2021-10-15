@@ -4,7 +4,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  namespace: sentry
+  namespace: monitor
   name: sentry-snuba-messaging-consumer-events-job
 spec:
   template:
@@ -25,12 +25,21 @@ spec:
                     "--auto-offset-reset=latest",
                     "--max-batch-time-ms", "750",
                     "--log-level", "WARNING"]
+      nodeSelector:
+        usage: sentry
+
+      tolerations:
+        - effect: NoExecute
+          key: usage
+          operator: Equal
+          value: "sentry"
+
 ---
 
 apiVersion: batch/v1
 kind: Job
 metadata:
-  namespace: sentry
+  namespace: monitor
   name: sentry-snuba-messaging-consumer-outcomes-job
 spec:
   template:
@@ -51,12 +60,21 @@ spec:
                     "--auto-offset-reset=earliest",
                     "--max-batch-time-ms", "750",
                     "--log-level", "WARNING"]
+      nodeSelector:
+        usage: sentry
+
+      tolerations:
+        - effect: NoExecute
+          key: usage
+          operator: Equal
+          value: "sentry"
+
 ---
 
 apiVersion: batch/v1
 kind: Job
 metadata:
-  namespace: sentry
+  namespace: monitor
   name: sentry-snuba-messaging-consumer-sessions-job
 spec:
   template:
@@ -77,12 +95,21 @@ spec:
                     "--auto-offset-reset=latest",
                     "--max-batch-time-ms", "750",
                     "--log-level", "WARNING"]
+      nodeSelector:
+        usage: sentry
+
+      tolerations:
+        - effect: NoExecute
+          key: usage
+          operator: Equal
+          value: "sentry"
+
 ---
 
 apiVersion: batch/v1
 kind: Job
 metadata:
-  namespace: sentry
+  namespace: monitor
   name: sentry-snuba-messaging-consumer-transactions-job
 spec:
   template:
@@ -104,12 +131,21 @@ spec:
                     "--auto-offset-reset=latest",
                     "--max-batch-time-ms", "750",
                     "--log-level", "WARNING"]
+      nodeSelector:
+        usage: sentry
+
+      tolerations:
+        - effect: NoExecute
+          key: usage
+          operator: Equal
+          value: "sentry"
+
 ---
 
 apiVersion: batch/v1
 kind: Job
 metadata:
-  namespace: sentry
+  namespace: monitor
   name: sentry-snuba-messaging-replacer-events-job
 spec:
   template:
@@ -130,12 +166,21 @@ spec:
                     "--auto-offset-reset=latest",
                     "--max-batch-size", "3",
                     "--log-level", "WARNING"]
+      nodeSelector:
+        usage: sentry
+
+      tolerations:
+        - effect: NoExecute
+          key: usage
+          operator: Equal
+          value: "sentry"
+
 ---
 
 apiVersion: batch/v1
 kind: Job
 metadata:
-  namespace: sentry
+  namespace: monitor
   name: sentry-snuba-messaging-subscriptions-events-job
 spec:
   template:
@@ -161,12 +206,21 @@ spec:
                     "--commit-log-group=snuba-consumers",
                     "--delay-seconds=60",
                     "--schedule-ttl=60"]
+      nodeSelector:
+        usage: sentry
+
+      tolerations:
+        - effect: NoExecute
+          key: usage
+          operator: Equal
+          value: "sentry"
+
 ---
 
 apiVersion: batch/v1
 kind: Job
 metadata:
-  namespace: sentry
+  namespace: monitor
   name: sentry-snuba-messaging-subscriptions-transactions-job
 spec:
   template:
@@ -192,4 +246,13 @@ spec:
                     "--commit-log-group=transactions_group",
                     "--delay-seconds=60",
                     "--schedule-ttl=60"]
+      nodeSelector:
+        usage: sentry
+
+      tolerations:
+        - effect: NoExecute
+          key: usage
+          operator: Equal
+          value: "sentry"
+
 ---

@@ -4,7 +4,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  namespace: sentry
+  namespace: monitor
   name: sentry-worker
 spec:
   template:
@@ -31,6 +31,14 @@ spec:
               mountPath: /data
             - name: sentry-configuration
               mountPath: /etc/sentry
+      nodeSelector:
+        usage: sentry
+
+      tolerations:
+        - effect: NoExecute
+          key: usage
+          operator: Equal
+          value: "sentry"
 
       volumes:
         - name: sentry-data

@@ -4,7 +4,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  namespace: sentry
+  namespace: monitor
   name: sentry-cron
 spec:
   template:
@@ -35,4 +35,13 @@ spec:
         - name: sentry-configuration
           configMap:
             name: sentry
+      nodeSelector:
+        usage: sentry
+
+      tolerations:
+        - effect: NoExecute
+          key: usage
+          operator: Equal
+          value: "sentry"
+
 ---

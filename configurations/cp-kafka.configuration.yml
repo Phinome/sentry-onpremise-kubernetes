@@ -4,7 +4,7 @@
 kind: ConfigMap
 apiVersion: v1
 metadata:
-  namespace: sentry
+  namespace: monitor
   name: cp-kafka
 data:
   KAFKA_ZOOKEEPER_CONNECT: "cp-zookeeper:2181"

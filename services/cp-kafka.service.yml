@@ -4,7 +4,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: sentry
+  namespace: monitor
   name: cp-kafka
 spec:
   type: NodePort
@@ -22,7 +22,7 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  namespace: sentry
+  namespace: monitor
   name: cp-kafka
   labels:
     instance: cp-kafka
@@ -97,7 +97,7 @@ spec:
 
   volumeClaimTemplates:
     - metadata:
-        namespace: sentry
+        namespace: monitor
         name: cp-kafka-data
       spec:
         accessModes: [ "ReadWriteOnce" ]
@@ -105,7 +105,7 @@ spec:
           requests:
             storage: 10Gi
     - metadata:
-        namespace: sentry
+        namespace: monitor
         name: cp-kafka-log
       spec:
         accessModes: [ "ReadWriteOnce" ]

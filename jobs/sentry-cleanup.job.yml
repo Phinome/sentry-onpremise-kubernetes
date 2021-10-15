@@ -4,7 +4,7 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  namespace: sentry
+  namespace: monitor
   name: sentry-cleanup-job
 spec:
   schedule: "0 0 * * *" #Every day at midnight.
@@ -41,3 +41,12 @@ spec:
             - name: sentry-configuration
               configMap:
                 name: sentry
+          nodeSelector:
+            usage: sentry
+
+          tolerations:
+            - effect: NoExecute
+              key: usage
+              operator: Equal
+              value: "sentry"
+

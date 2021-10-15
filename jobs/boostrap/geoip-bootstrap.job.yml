@@ -4,7 +4,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  namespace: sentry
+  namespace: monitor
   name: geoip-bootstrap-job
 spec:
   backoffLimit: 1
@@ -42,4 +42,13 @@ spec:
         - name: geoip-configuration
           configMap:
             name: geoip
+      nodeSelector:
+        usage: sentry
+
+      tolerations:
+        - effect: NoExecute
+          key: usage
+          operator: Equal
+          value: "sentry"
+
 

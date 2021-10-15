@@ -4,7 +4,7 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  namespace: sentry
+  namespace: monitor
   name: sentry-snuba-cleanup-job
 spec:
   schedule: "*/5 * * * *" #Every 5min
@@ -27,3 +27,12 @@ spec:
                     name: sentry-snuba
 
               command: ["snuba", "cleanup", "--dry-run", "False"]
+          nodeSelector:
+            usage: sentry
+
+          tolerations:
+            - effect: NoExecute
+              key: usage
+              operator: Equal
+              value: "sentry"
+

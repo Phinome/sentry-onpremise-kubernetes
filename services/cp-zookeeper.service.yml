@@ -4,7 +4,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: sentry
+  namespace: monitor
   name: cp-zookeeper
 spec:
   type: NodePort
@@ -20,7 +20,7 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  namespace: sentry
+  namespace: monitor
   name: cp-zookeeper
   labels:
     instance: cp-zookeeper
@@ -87,7 +87,7 @@ spec:
 
   volumeClaimTemplates:
     - metadata:
-        namespace: sentry
+        namespace: monitor
         name: cp-zookeeper-data
       spec:
         accessModes: [ "ReadWriteOnce" ]
@@ -95,7 +95,7 @@ spec:
           requests:
             storage: 256Mi
     - metadata:
-        namespace: sentry
+        namespace: monitor
         name: cp-zookeeper-log
       spec:
         accessModes: [ "ReadWriteOnce" ]

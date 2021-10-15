@@ -4,20 +4,19 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  namespace: sentry
+  namespace: monitor
   name: sentry-ingress
   annotations:
     kubernetes.io/ingress.class: "nginx"
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
     nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   tls:
     - hosts:
-        - sentry.domain.com
-      secretName: secret-tls
+        - sentry.mywkd.com
+      secretName: sentry-tls
 
   rules:
-    - host: sentry.domain.com
+    - host: sentry.mywkd.com
       http:
         paths:
           - path: /

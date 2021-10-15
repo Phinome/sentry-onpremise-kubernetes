@@ -1,10 +1,10 @@
+--- #---------------------------------------------------------------
 #---------------------------------------------------------------
 #                             JOB
-#---------------------------------------------------------------
 apiVersion: batch/v1
 kind: Job
 metadata:
-  namespace: sentry
+  namespace: monitor
   name: sentry-bootstrap-upgrade-job
 spec:
   backoffLimit: 1
@@ -31,7 +31,11 @@ spec:
                   key: SENTRY_DB_PASSWORD
 
           command: ["/bin/sh"]
-          args: ["-c", "createdb -h postgresql.sentry.svc.cluster.local -U $(SENTRY_DB_USER) $(SENTRY_DB_NAME) || true"]
+          args:
+            [
+              "-c",
+              "createdb -h postgresql.sentry.svc.cluster.local -U $(SENTRY_DB_USER) $(SENTRY_DB_NAME) || true",
+            ]
 
       containers:
         - name: sentry-bootstrap-upgrade-job
@@ -62,4 +66,11 @@ spec:
         - name: sentry-configuration
           configMap:
             name: sentry
+      nodeSelector:
+        usage: sentry
 
+      tolerations:
+        - effect: NoExecute
+          key: usage
+          operator: Equal
+          value: "sentry"
